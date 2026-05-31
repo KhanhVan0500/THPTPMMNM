@@ -3,6 +3,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 $cartCount = isset($_SESSION['cart']) ? array_sum(array_column($_SESSION['cart'], 'quantity')) : 0;
+require_once __DIR__ . '/../../helpers/SessionHelper.php';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -180,8 +181,19 @@ $cartCount = isset($_SESSION['cart']) ? array_sum(array_column($_SESSION['cart']
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ml-auto align-items-center">
             <li class="nav-item"><a class="nav-link" href="/Product">Khám phá</a></li>
-            <li class="nav-item"><a class="nav-link" href="/Product/orders">Đơn hàng đã mua</a></li>
-            <li class="nav-item"><a class="nav-link" href="/Category">Quản lý danh mục</a></li>
+            <?php if (SessionHelper::isLoggedIn()) : ?>
+                <li class="nav-item"><a class="nav-link" href="/Product/orders"><?php echo SessionHelper::isAdmin() ? 'Quản lý đơn hàng' : 'Đơn hàng của tôi'; ?></a></li>
+            <?php endif; ?>
+            <?php if (SessionHelper::isAdmin()) : ?>
+                <li class="nav-item"><a class="nav-link" href="/Category">Quản lý danh mục</a></li>
+            <?php endif; ?>
+            <?php if (isset($_SESSION['username'])) : ?>
+                <li class="nav-item"><a class="nav-link" href="#">Xin chào, <?php echo htmlentities($_SESSION['username']); ?></a></li>
+                <li class="nav-item"><a class="nav-link" href="/account/logout">Logout</a></li>
+            <?php else : ?>
+                <li class="nav-item"><a class="nav-link" href="/account/login">Login</a></li>
+                <li class="nav-item"><a class="nav-link" href="/account/register">Đăng ký</a></li>
+            <?php endif; ?>
             <li class="nav-item">
                 <a class="btn btn-primary ml-2" href="/Product/cart">🛒 Giỏ hàng<?php echo $cartCount > 0 ? ' (' . $cartCount . ')' : ''; ?></a>
             </li>

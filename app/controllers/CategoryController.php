@@ -2,6 +2,8 @@
 require_once('app/config/database.php');
 require_once('app/models/CategoryModel.php');
 
+require_once('app/helpers/SessionHelper.php');
+
 class CategoryController
 {
     private $categoryModel;
@@ -20,6 +22,11 @@ class CategoryController
 
     public function list()
     {
+        if (!SessionHelper::isAdmin()) {
+            header('Location: /account/login');
+            return;
+        }
+
         $categories = $this->categoryModel->getCategories();
         include 'app/views/category/list.php';
     }

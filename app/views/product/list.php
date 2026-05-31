@@ -11,6 +11,31 @@
     </div>
 </div>
 
+<?php if (SessionHelper::isAdmin()) : ?>
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="card border-primary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Quản lý đơn hàng</h5>
+                        <p class="card-text">Xem và cập nhật trạng thái đơn hàng ngay từ trang chủ.</p>
+                        <a href="/Product/orders" class="btn btn-primary">Quản lý đơn hàng</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card border-success h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Quản lý danh mục</h5>
+                        <p class="card-text">Tạo, sửa, xoá danh mục sản phẩm cho cửa hàng.</p>
+                        <a href="/Category" class="btn btn-success">Quản lý danh mục</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
 <form class="mb-4" method="get" action="/Product">
     <div class="input-group" style="max-width:760px; margin:0 auto;">
         <input type="text" name="search" class="form-control" placeholder="Tìm sản phẩm theo tên hoặc mô tả"

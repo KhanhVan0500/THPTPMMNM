@@ -4,7 +4,7 @@
     <div class="col-lg-10">
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">Đơn hàng đã mua</h3>
+                <h3 class="mb-0"><?php echo SessionHelper::isAdmin() ? 'Quản lý đơn hàng' : 'Đơn hàng của tôi'; ?></h3>
             </div>
             <div class="card-body">
                 <?php if (empty($orders)): ?>
@@ -22,6 +22,25 @@
                                 <div class="text-right">
                                     <span class="badge badge-pill badge-info" style="font-size:0.95rem; padding:0.75rem 1rem; background:#7c3aed; color:#fff;"><?php echo htmlspecialchars($order->status, ENT_QUOTES, 'UTF-8'); ?></span>
                                     <p class="mb-0 text-muted" style="margin-top:0.5rem;"><?php echo date('d/m/Y H:i', strtotime($order->created_at)); ?></p>
+
+                                    <?php if (SessionHelper::isAdmin()) : ?>
+                                        <form method="post" action="/Product/changeOrderStatus/<?php echo urlencode($order->id); ?>" class="mt-3 text-right">
+                                            <div class="input-group input-group-sm">
+                                                <select name="status" class="form-control form-control-sm">
+                                                    <option value="Đang xử lý"<?php echo $order->status === 'Đang xử lý' ? ' selected' : ''; ?>>Đang xử lý</option>
+                                                    <option value="Đang giao"<?php echo $order->status === 'Đang giao' ? ' selected' : ''; ?>>Đang giao</option>
+                                                    <option value="Đã giao"<?php echo $order->status === 'Đã giao' ? ' selected' : ''; ?>>Đã giao</option>
+                                                </select>
+                                                <div class="input-group-append">
+                                                    <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    <?php else: ?>
+                                        <div class="mt-3 text-right">
+                                            <small class="text-secondary">Theo dõi trạng thái đơn hàng của bạn.</small>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
 

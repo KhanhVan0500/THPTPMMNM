@@ -2,6 +2,7 @@
 require_once('app/config/database.php');
 require_once('app/models/ProductModel.php');
 require_once('app/models/CategoryModel.php');
+require_once('app/helpers/SessionHelper.php');
 
 class ProductController
 {
@@ -12,6 +13,14 @@ class ProductController
     {
         $this->db           = (new Database())->getConnection();
         $this->productModel = new ProductModel($this->db);
+    }
+
+    private function ensureOrderUsernameColumn()
+    {
+        $stmt = $this->db->query("SHOW COLUMNS FROM orders LIKE 'username'");
+        if ($stmt && $stmt->fetch() === false) {
+            $this->db->exec("ALTER TABLE orders ADD COLUMN username VARCHAR(255) DEFAULT NULL");
+        }
     }
 
     // ==================== HIỂN THỊ DANH SÁCH ====================
@@ -189,6 +198,11 @@ class ProductController
 
     public function addToCart($id)
     {
+        // Require login to add to cart
+        if (!SessionHelper::isLoggedIn()) {
+            header('Location: /account/login');
+            return;
+        }
         $product = $this->productModel->getProductById($id);
         if (!$product) {
             echo "Không tìm thấy sản phẩm.";
@@ -220,6 +234,11 @@ class ProductController
 
     public function removeFromCart($id)
     {
+        // Require login to modify cart
+        if (!SessionHelper::isLoggedIn()) {
+            header('Location: /account/login');
+            return;
+        }
         if (isset($_SESSION['cart'][$id])) {
             unset($_SESSION['cart'][$id]);
         }
@@ -228,18 +247,39 @@ class ProductController
 
     public function cart()
     {
+        // Require login to view cart and proceed to checkout
+        if (!SessionHelper::isLoggedIn()) {
+            header('Location: /account/login');
+            return;
+        }
         $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
         include 'app/views/product/cart.php';
     }
 
     public function orders()
     {
+        if (!SessionHelper::isLoggedIn()) {
+            header('Location: /account/login');
+            return;
+        }
+
+        $this->ensureOrderUsernameColumn();
+
         $orders = [];
         $detailsByOrder = [];
 
-        $query = "SELECT * FROM orders ORDER BY created_at DESC";
-        $stmt  = $this->db->prepare($query);
-        $stmt->execute();
+        if (SessionHelper::isAdmin()) {
+            $query = "SELECT * FROM orders ORDER BY created_at DESC";
+            $stmt  = $this->db->prepare($query);
+            $stmt->execute();
+        } else {
+            $username = $_SESSION['username'] ?? '';
+            $query = "SELECT * FROM orders WHERE username = :username ORDER BY created_at DESC";
+            $stmt  = $this->db->prepare($query);
+            $stmt->bindParam(':username', $username);
+            $stmt->execute();
+        }
+
         $orders = $stmt->fetchAll(PDO::FETCH_OBJ);
 
         if (!empty($orders)) {
@@ -263,6 +303,11 @@ class ProductController
 
     public function checkout()
     {
+        // Require login to checkout
+        if (!SessionHelper::isLoggedIn()) {
+            header('Location: /account/login');
+            return;
+        }
         if (empty($_SESSION['cart'])) {
             header('Location: /Product/cart');
             return;
@@ -272,6 +317,11 @@ class ProductController
 
     public function processCheckout()
     {
+        // Require login to place order
+        if (!SessionHelper::isLoggedIn()) {
+            header('Location: /account/login');
+            return;
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $name           = trim($_POST['name']           ?? '');
             $phone          = trim($_POST['phone']          ?? '');
@@ -284,12 +334,17 @@ class ProductController
 
             $this->db->beginTransaction();
             try {
-                $query = "INSERT INTO orders (name, phone, address)
-                          VALUES (:name, :phone, :address)";
+                    $this->ensureOrderUsernameColumn();
+                $username = $_SESSION['username'] ?? '';
+                $query = "INSERT INTO orders (username, name, phone, address, status)
+                          VALUES (:username, :name, :phone, :address, :status)";
                 $stmt  = $this->db->prepare($query);
+                $stmt->bindParam(':username', $username);
                 $stmt->bindParam(':name',    $name);
                 $stmt->bindParam(':phone',   $phone);
                 $stmt->bindParam(':address', $address);
+                $status = 'Đang xử lý';
+                $stmt->bindParam(':status', $status);
                 $stmt->execute();
                 $order_id = $this->db->lastInsertId();
 
@@ -345,6 +400,34 @@ class ProductController
         $total      = $_SESSION['order_total'] ?? 0;
         $order_name = $_SESSION['order_name']  ?? '';
         include 'app/views/product/paymentBank.php';
+    }
+
+    public function changeOrderStatus($id)
+    {
+        if (!SessionHelper::isAdmin()) {
+            header('Location: /account/login');
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /Product/orders');
+            return;
+        }
+
+        $status = $_POST['status'] ?? '';
+        $allowed = ['Đang xử lý', 'Đang giao', 'Đã giao'];
+        if (!in_array($status, $allowed, true)) {
+            header('Location: /Product/orders');
+            return;
+        }
+
+        $query = "UPDATE orders SET status = :status WHERE id = :id";
+        $stmt  = $this->db->prepare($query);
+        $stmt->bindParam(':status', $status);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        header('Location: /Product/orders');
     }
 
     public function paymentVNPay()

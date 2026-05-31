@@ -28,15 +28,17 @@ CREATE TABLE IF NOT EXISTS product (
 -- Tạo bảng orders (đơn hàng) - BÀI 3
 CREATE TABLE IF NOT EXISTS orders (
     id         INT AUTO_INCREMENT PRIMARY KEY,
+    username   VARCHAR(255) DEFAULT NULL,
     name       VARCHAR(255) NOT NULL,
     phone      VARCHAR(20)  NOT NULL,
     address    TEXT NOT NULL,
-    status     VARCHAR(50) NOT NULL DEFAULT 'Chờ xử lý',
+    status     VARCHAR(50) NOT NULL DEFAULT 'Đang xử lý',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Nếu đã có bảng orders nhưng chưa có cột status
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS status VARCHAR(50) NOT NULL DEFAULT 'Chờ xử lý';
+-- Nếu đã có bảng orders nhưng thiếu cột username hoặc status chưa đúng mặc định
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS username VARCHAR(255) DEFAULT NULL;
+ALTER TABLE orders MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Đang xử lý';
 
 -- Tạo bảng order_details (chi tiết đơn hàng) - BÀI 3
 CREATE TABLE IF NOT EXISTS order_details (
