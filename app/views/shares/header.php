@@ -183,12 +183,19 @@ require_once __DIR__ . '/../../helpers/SessionHelper.php';
             <li class="nav-item"><a class="nav-link" href="/Product">Khám phá</a></li>
             <?php if (SessionHelper::isLoggedIn()) : ?>
                 <li class="nav-item"><a class="nav-link" href="/Product/orders"><?php echo SessionHelper::isAdmin() ? 'Quản lý đơn hàng' : 'Đơn hàng của tôi'; ?></a></li>
+                <li class="nav-item"><a class="nav-link" href="/account/profile">Hồ sơ</a></li>
             <?php endif; ?>
             <?php if (SessionHelper::isAdmin()) : ?>
                 <li class="nav-item"><a class="nav-link" href="/Category">Quản lý danh mục</a></li>
+                <li class="nav-item"><a class="nav-link" href="/account/users">Quản lý người dùng</a></li>
             <?php endif; ?>
             <?php if (isset($_SESSION['username'])) : ?>
-                <li class="nav-item"><a class="nav-link" href="#">Xin chào, <?php echo htmlentities($_SESSION['username']); ?></a></li>
+                <?php if (!empty($_SESSION['avatar'])) : ?>
+                    <li class="nav-item d-flex align-items-center mr-2">
+                        <img src="<?php echo htmlentities($_SESSION['avatar']); ?>" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;margin-right:8px;">
+                    </li>
+                <?php endif; ?>
+                <li class="nav-item"><a class="nav-link" href="#">Xin chào, <?php echo htmlentities($_SESSION['fullname'] ?: $_SESSION['username']); ?></a></li>
                 <li class="nav-item"><a class="nav-link" href="/account/logout">Logout</a></li>
             <?php else : ?>
                 <li class="nav-item"><a class="nav-link" href="/account/login">Login</a></li>

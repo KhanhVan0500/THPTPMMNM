@@ -11,23 +11,32 @@
 							<p class="text-muted mb-0">Đăng nhập bằng email Gmail và mật khẩu của bạn.</p>
 						</div>
 
-						<?php if (isset($error)) : ?>
-							<div class="alert alert-danger" role="alert">
-								<?php echo htmlentities($error); ?>
-							</div>
-						<?php endif; ?>
+<?php if (isset($_GET['registered'])) : ?>
+                            <div class="alert alert-success" role="alert">
+                                Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.
+                            </div>
+                        <?php endif; ?>
+                        <?php if (isset($error)) : ?>
+                            <div class="alert alert-danger" role="alert">
+                                <?php echo htmlentities($error); ?>
+                            </div>
+                        <?php endif; ?>
 
-						<form action="/account/checklogin" method="post">
-							<div class="mb-3">
-								<label class="form-label" for="email">Email (Gmail)</label>
-								<input type="email" id="email" name="email" class="form-control form-control-lg" placeholder="you@gmail.com" required>
-							</div>
-							<div class="mb-4">
-								<label class="form-label" for="password">Mật khẩu</label>
-								<input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Nhập mật khẩu" required>
-							</div>
-							<div class="d-flex justify-content-between align-items-center mb-4">
-								<a href="#!" class="text-decoration-none text-muted small">Quên mật khẩu?</a>
+                        <form action="/account/checklogin" method="post">
+                            <div class="mb-3">
+                                <label class="form-label" for="email">Email (Gmail)</label>
+                                <input type="email" id="email" name="email" class="form-control form-control-lg" placeholder="you@gmail.com" value="<?php echo htmlentities($_POST['email'] ?? ''); ?>" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label" for="password">Mật khẩu</label>
+                                <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Nhập mật khẩu" required>
+                            </div>
+                            <div class="form-group form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                <label class="form-check-label" for="remember">Ghi nhớ đăng nhập</label>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <a href="/account/forgot" class="text-decoration-none text-muted small">Quên mật khẩu?</a>
 							</div>
 							<button type="submit" class="btn btn-primary btn-lg w-100">Đăng nhập</button>
 						</form>

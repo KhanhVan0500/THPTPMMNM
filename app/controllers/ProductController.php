@@ -23,6 +23,14 @@ class ProductController
         }
     }
 
+    private function ensureAdmin()
+    {
+        if (!SessionHelper::isAdmin()) {
+            header('Location: /Product');
+            exit;
+        }
+    }
+
     // ==================== HIỂN THỊ DANH SÁCH ====================
 
     public function index()
@@ -53,6 +61,7 @@ class ProductController
     public function show($id)
     {
         $product = $this->productModel->getProductById($id);
+        $productModel = $this->productModel;
         if ($product) {
             include 'app/views/product/show.php';
         } else {
@@ -64,19 +73,21 @@ class ProductController
 
     public function add()
     {
+        $this->ensureAdmin();
         $categories = (new CategoryModel($this->db))->getCategories();
         include_once 'app/views/product/add.php';
     }
 
     public function save()
     {
+        $this->ensureAdmin();
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $name        = $_POST['name']        ?? '';
             $description = $_POST['description'] ?? '';
             $price       = $_POST['price']       ?? '';
             $category_id = $_POST['category_id'] ?? null;
 
-            // Xử lý upload hình ảnh
+            // Xử lý upload hình ảnh chính
             $image = '';
             if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
                 try {
@@ -96,6 +107,32 @@ class ProductController
                 $categories = (new CategoryModel($this->db))->getCategories();
                 include 'app/views/product/add.php';
             } else {
+                // Lấy ID sản phẩm vừa tạo
+                $lastId = $this->db->lastInsertId();
+                
+                // Xử lý upload các hình ảnh bổ sung
+                if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
+                    $uploadCount = count($_FILES['images']['name']);
+                    for ($i = 0; $i < min($uploadCount, 5); $i++) {
+                        if ($_FILES['images']['error'][$i] == 0) {
+                            try {
+                                $file = [
+                                    'name' => $_FILES['images']['name'][$i],
+                                    'type' => $_FILES['images']['type'][$i],
+                                    'tmp_name' => $_FILES['images']['tmp_name'][$i],
+                                    'size' => $_FILES['images']['size'][$i],
+                                    'error' => $_FILES['images']['error'][$i]
+                                ];
+                                $imagePath = $this->uploadImage($file);
+                                $this->productModel->addProductImage($lastId, $imagePath);
+                            } catch (Exception $e) {
+                                // Bỏ qua ảnh lỗi
+                                continue;
+                            }
+                        }
+                    }
+                }
+                
                 header('Location: /Product');
             }
         }
@@ -105,8 +142,10 @@ class ProductController
 
     public function edit($id)
     {
-        $product    = $this->productModel->getProductById($id);
-        $categories = (new CategoryModel($this->db))->getCategories();
+        $this->ensureAdmin();
+        $product      = $this->productModel->getProductById($id);
+        $categories   = (new CategoryModel($this->db))->getCategories();
+        $productModel = $this->productModel;
         if ($product) {
             include 'app/views/product/edit.php';
         } else {
@@ -116,6 +155,7 @@ class ProductController
 
     public function update()
     {
+        $this->ensureAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id          = $_POST['id'];
             $name        = $_POST['name'];
@@ -137,6 +177,29 @@ class ProductController
 
             $result = $this->productModel->updateProduct($id, $name, $description, $price, $category_id, $image);
             if ($result) {
+                // Xử lý upload các hình ảnh bổ sung
+                if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
+                    $uploadCount = count($_FILES['images']['name']);
+                    for ($i = 0; $i < min($uploadCount, 5); $i++) {
+                        if ($_FILES['images']['error'][$i] == 0) {
+                            try {
+                                $file = [
+                                    'name' => $_FILES['images']['name'][$i],
+                                    'type' => $_FILES['images']['type'][$i],
+                                    'tmp_name' => $_FILES['images']['tmp_name'][$i],
+                                    'size' => $_FILES['images']['size'][$i],
+                                    'error' => $_FILES['images']['error'][$i]
+                                ];
+                                $imagePath = $this->uploadImage($file);
+                                $this->productModel->addProductImage($id, $imagePath);
+                            } catch (Exception $e) {
+                                // Bỏ qua ảnh lỗi
+                                continue;
+                            }
+                        }
+                    }
+                }
+                
                 header('Location: /Product');
             } else {
                 echo "Đã xảy ra lỗi khi lưu sản phẩm.";
@@ -144,10 +207,23 @@ class ProductController
         }
     }
 
+    // ==================== XÓA HÌNH ẢNH ====================
+
+    public function deleteImage($imageId)
+    {
+        $this->ensureAdmin();
+        if ($this->productModel->deleteProductImage($imageId)) {
+            header('Location: ' . $_SERVER['HTTP_REFERER']);
+        } else {
+            echo "Đã xảy ra lỗi khi xóa ảnh.";
+        }
+    }
+
     // ==================== XÓA SẢN PHẨM ====================
 
     public function delete($id)
     {
+        $this->ensureAdmin();
         if ($this->productModel->deleteProduct($id)) {
             header('Location: /Product');
         } else {

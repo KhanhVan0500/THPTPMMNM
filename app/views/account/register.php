@@ -20,15 +20,19 @@
                     <?php endif; ?>
                     <form action="/account/save" method="post">
                         <div class="form-group mb-3">
+                            <label class="form-label" for="fullname">Họ và tên</label>
+                            <input type="text" class="form-control form-control-lg" id="fullname" name="fullname" value="<?php echo htmlentities($_POST['fullname'] ?? ''); ?>" placeholder="Họ và tên" required>
+                        </div>
+                        <div class="form-group mb-3">
                             <label class="form-label" for="role">Quyền</label>
                             <select class="form-control form-control-lg" id="role" name="role">
-                                <option value="user" selected>Người dùng (user)</option>
-                                <option value="admin">Quản trị (admin)</option>
+                                <option value="user" <?php echo (isset($_POST['role']) && $_POST['role'] === 'user') ? 'selected' : ''; ?>>Người dùng (user)</option>
+                                <option value="admin" <?php echo (isset($_POST['role']) && $_POST['role'] === 'admin') ? 'selected' : ''; ?>>Quản trị (admin)</option>
                             </select>
                         </div>
                         <div class="form-group mb-3">
                             <label class="form-label" for="email">Email (Gmail)</label>
-                            <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="you@gmail.com" required>
+                            <input type="email" class="form-control form-control-lg" id="email" name="email" value="<?php echo htmlentities($_POST['email'] ?? ''); ?>" placeholder="you@gmail.com" required>
                         </div>
                         <div class="form-row row">
                             <div class="col-md-6 mb-3">

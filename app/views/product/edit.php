@@ -61,7 +61,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="image"><strong>Hình ảnh:</strong></label>
+                        <label for="image"><strong>Hình ảnh chính:</strong></label>
                         <?php if (!empty($product->image)): ?>
                             <div class="mb-2">
                                 <img src="/<?php echo htmlspecialchars($product->image, ENT_QUOTES, 'UTF-8'); ?>"
@@ -73,6 +73,61 @@
                                accept="image/jpg,image/jpeg,image/png,image/gif">
                         <small class="text-muted">Định dạng: JPG, JPEG, PNG, GIF. Tối đa 10MB.</small>
                     </div>
+
+                    <div class="form-group">
+                        <label><strong>Hình ảnh bổ sung:</strong></label>
+                        
+                        <?php 
+                        $images = $productModel->getProductImages($product->id);
+                        if (!empty($images)): 
+                        ?>
+                            <div class="mb-3">
+                                <p class="text-muted">Hình ảnh hiện tại:</p>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <?php foreach ($images as $img): ?>
+                                        <div style="position: relative; width: 100px;">
+                                            <img src="/<?php echo htmlspecialchars($img->image_path, ENT_QUOTES, 'UTF-8'); ?>" 
+                                                 alt="Ảnh sản phẩm" 
+                                                 style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;">
+                                            <a href="/Product/deleteImage/<?php echo $img->id; ?>" 
+                                               onclick="return confirm('Xóa ảnh này?')"
+                                               style="position: absolute; top: 2px; right: 2px; background: red; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; text-decoration: none;">×</a>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <label for="images" style="margin-top: 15px;"><strong>Thêm hình ảnh mới (tối đa 5):</strong></label>
+                        <input type="file" id="images" name="images[]" class="form-control-file" multiple
+                               accept="image/jpg,image/jpeg,image/png,image/gif">
+                        <small class="text-muted">Bạn có thể chọn nhiều ảnh cùng lúc. Mỗi ảnh tối đa 10MB.</small>
+                        <div id="imagePreview" class="mt-2" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+                    </div>
+
+                    <script>
+                        document.getElementById('images').addEventListener('change', function(e) {
+                            const preview = document.getElementById('imagePreview');
+                            preview.innerHTML = '';
+                            
+                            for (let file of this.files) {
+                                if (file.type.match('image.*')) {
+                                    const reader = new FileReader();
+                                    reader.onload = function(event) {
+                                        const img = document.createElement('img');
+                                        img.src = event.target.result;
+                                        img.style.width = '80px';
+                                        img.style.height = '80px';
+                                        img.style.objectFit = 'cover';
+                                        img.style.borderRadius = '4px';
+                                        img.style.border = '1px solid #ddd';
+                                        preview.appendChild(img);
+                                    }
+                                    reader.readAsDataURL(file);
+                                }
+                            }
+                        });
+                    </script>
 
                     <div class="d-flex justify-content-between">
                         <button type="submit" class="btn btn-primary">💾 Lưu thay đổi</button>

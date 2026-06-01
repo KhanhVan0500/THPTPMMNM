@@ -25,6 +25,16 @@ CREATE TABLE IF NOT EXISTS product (
     FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE SET NULL
 );
 
+-- Tạo bảng product_images (hình ảnh sản phẩm)
+CREATE TABLE IF NOT EXISTS product_images (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    image_path VARCHAR(255) NOT NULL,
+    is_primary TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE
+);
+
 -- Tạo bảng orders (đơn hàng) - BÀI 3
 CREATE TABLE IF NOT EXISTS orders (
     id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,6 +49,38 @@ CREATE TABLE IF NOT EXISTS orders (
 -- Nếu đã có bảng orders nhưng thiếu cột username hoặc status chưa đúng mặc định
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS username VARCHAR(255) DEFAULT NULL;
 ALTER TABLE orders MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Đang xử lý';
+
+-- Tạo bảng account để quản lý người dùng
+CREATE TABLE IF NOT EXISTS account (
+    id                     INT AUTO_INCREMENT PRIMARY KEY,
+    username               VARCHAR(255) NOT NULL UNIQUE,
+    fullname               VARCHAR(255) DEFAULT '',
+    password               VARCHAR(255) NOT NULL,
+    role                   ENUM('user','admin') NOT NULL DEFAULT 'user',
+    avatar                 VARCHAR(255) DEFAULT NULL,
+    phone                  VARCHAR(20) DEFAULT NULL,
+    address                TEXT DEFAULT NULL,
+    email_verified         TINYINT(1) NOT NULL DEFAULT 0,
+    verification_token     VARCHAR(255) DEFAULT NULL,
+    reset_token            VARCHAR(255) DEFAULT NULL,
+    reset_token_expires_at DATETIME DEFAULT NULL,
+    remember_token         VARCHAR(255) DEFAULT NULL,
+    is_locked              TINYINT(1) NOT NULL DEFAULT 0,
+    created_at             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+ALTER TABLE account ADD COLUMN IF NOT EXISTS fullname VARCHAR(255) DEFAULT '';
+ALTER TABLE account ADD COLUMN IF NOT EXISTS avatar VARCHAR(255) DEFAULT NULL;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS phone VARCHAR(20) DEFAULT NULL;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS address TEXT DEFAULT NULL;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS email_verified TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255) DEFAULT NULL;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255) DEFAULT NULL;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS reset_token_expires_at DATETIME DEFAULT NULL;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS remember_token VARCHAR(255) DEFAULT NULL;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS is_locked TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 
 -- Tạo bảng order_details (chi tiết đơn hàng) - BÀI 3
 CREATE TABLE IF NOT EXISTS order_details (

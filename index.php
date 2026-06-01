@@ -1,7 +1,26 @@
 <?php
 session_start();
+require_once 'app/config/database.php';
+require_once 'app/models/AccountModel.php';
 require_once 'app/models/ProductModel.php';
 require_once 'app/helpers/SessionHelper.php';
+
+if (!SessionHelper::isLoggedIn() && !empty($_COOKIE['remember_me'])) {
+    $rememberToken = $_COOKIE['remember_me'];
+    $db = (new Database())->getConnection();
+    if ($db) {
+        $accountModel = new AccountModel($db);
+        $account = $accountModel->getAccountByRememberToken($rememberToken);
+        if ($account && !$account->is_locked) {
+            $_SESSION['username'] = $account->username;
+            $_SESSION['fullname'] = $account->fullname;
+            $_SESSION['role'] = $account->role;
+            $_SESSION['avatar'] = $account->avatar;
+        } else {
+            setcookie('remember_me', '', time() - 3600, '/');
+        }
+    }
+}
 
 $url = $_GET['url'] ?? '';
 $url = trim($url, '/');

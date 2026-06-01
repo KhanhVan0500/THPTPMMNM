@@ -12,15 +12,17 @@ class ProductModel
     // Lấy toàn bộ sản phẩm kèm tên danh mục và hình ảnh
     public function getProducts($search = '')
     {
+        $search = trim($search);
         $query = "SELECT p.id, p.name, p.description, p.price, p.image,
                          c.name AS category_name
                   FROM " . $this->table_name . " p
                   LEFT JOIN category c ON p.category_id = c.id";
 
         if (!empty($search)) {
-            $query .= " WHERE p.name LIKE :search OR p.description LIKE :search";
+            $query .= " WHERE p.name LIKE :search OR p.description LIKE :search OR c.name LIKE :search";
         }
 
+        $query .= " ORDER BY p.id DESC";
         $stmt = $this->conn->prepare($query);
 
         if (!empty($search)) {
@@ -106,6 +108,45 @@ class ProductModel
         $stmt  = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
         return $stmt->execute() ? true : false;
+    }
+
+    // Lấy tất cả hình ảnh của sản phẩm
+    public function getProductImages($product_id)
+    {
+        $query = "SELECT * FROM product_images WHERE product_id = :product_id ORDER BY is_primary DESC, created_at ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':product_id', $product_id);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    // Thêm hình ảnh sản phẩm
+    public function addProductImage($product_id, $image_path, $is_primary = 0)
+    {
+        $query = "INSERT INTO product_images (product_id, image_path, is_primary) VALUES (:product_id, :image_path, :is_primary)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':product_id', $product_id);
+        $stmt->bindParam(':image_path', $image_path);
+        $stmt->bindParam(':is_primary', $is_primary);
+        return $stmt->execute();
+    }
+
+    // Xóa hình ảnh sản phẩm
+    public function deleteProductImage($image_id)
+    {
+        $query = "DELETE FROM product_images WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $image_id);
+        return $stmt->execute();
+    }
+
+    // Xóa tất cả hình ảnh của sản phẩm
+    public function deleteAllProductImages($product_id)
+    {
+        $query = "DELETE FROM product_images WHERE product_id = :product_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':product_id', $product_id);
+        return $stmt->execute();
     }
 }
 ?>

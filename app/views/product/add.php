@@ -61,11 +61,43 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="image"><strong>Hình ảnh:</strong></label>
+                        <label for="image"><strong>Hình ảnh chính:</strong></label>
                         <input type="file" id="image" name="image" class="form-control-file"
                                accept="image/jpg,image/jpeg,image/png,image/gif">
                         <small class="text-muted">Định dạng: JPG, JPEG, PNG, GIF. Tối đa 10MB.</small>
                     </div>
+
+                    <div class="form-group">
+                        <label for="images"><strong>Hình ảnh bổ sung (tối đa 5):</strong></label>
+                        <input type="file" id="images" name="images[]" class="form-control-file" multiple
+                               accept="image/jpg,image/jpeg,image/png,image/gif">
+                        <small class="text-muted">Bạn có thể chọn nhiều ảnh cùng lúc. Mỗi ảnh tối đa 10MB.</small>
+                        <div id="imagePreview" class="mt-2" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+                    </div>
+
+                    <script>
+                        document.getElementById('images').addEventListener('change', function(e) {
+                            const preview = document.getElementById('imagePreview');
+                            preview.innerHTML = '';
+                            
+                            for (let file of this.files) {
+                                if (file.type.match('image.*')) {
+                                    const reader = new FileReader();
+                                    reader.onload = function(event) {
+                                        const img = document.createElement('img');
+                                        img.src = event.target.result;
+                                        img.style.width = '80px';
+                                        img.style.height = '80px';
+                                        img.style.objectFit = 'cover';
+                                        img.style.borderRadius = '4px';
+                                        img.style.border = '1px solid #ddd';
+                                        preview.appendChild(img);
+                                    }
+                                    reader.readAsDataURL(file);
+                                }
+                            }
+                        });
+                    </script>
 
                     <div class="d-flex justify-content-between">
                         <button type="submit" class="btn btn-success">✅ Thêm sản phẩm</button>
