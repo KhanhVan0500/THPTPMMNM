@@ -1,0 +1,18 @@
+<?php include BASE_PATH . '/app/views/shares/header.php'; ?>
+<?php $totalProductsInCategories = 0; foreach ($categories as $c) { $totalProductsInCategories += (int)($c['product_count'] ?? 0); } ?>
+<div class="page-header">
+  <?= breadcrumb([['label'=>'Danh mục']]) ?>
+  <div class="d-flex justify-content-between align-items-center flex-wrap">
+    <div><span class="hero-chip mb-3"><i class="fas fa-layer-group"></i> Category Manager</span><h2 class="font-display">Quản lý danh mục</h2><p class="mb-0"><?= count($categories) ?> danh mục — quản lý theo nhóm để tìm kiếm nhanh hơn</p></div>
+    <?php if (isAdminLoggedIn()): ?><a href="index.php?url=category/create" class="btn btn-outline-light mt-2 mt-md-0"><i class="fas fa-plus mr-1"></i>Thêm danh mục</a><?php endif; ?>
+  </div>
+</div>
+<div class="stats-grid mb-4"><div class="stat-card"><div class="stat-icon"><i class="fas fa-folder"></i></div><div class="stat-content"><h6>Tổng danh mục</h6><div class="stat-value"><?= number_format(count($categories)) ?></div></div></div><div class="stat-card"><div class="stat-icon" style="background:var(--gradient-accent);"><i class="fas fa-box"></i></div><div class="stat-content"><h6>Tổng sản phẩm</h6><div class="stat-value"><?= number_format($totalProductsInCategories) ?></div></div></div></div>
+<?php if (empty($categories)): ?>
+  <div class="empty-state"><i class="fas fa-folder-open"></i><h4>Chưa có danh mục nào</h4><p>Tạo danh mục để phân loại sản phẩm khoa học hơn.</p><?php if (isAdminLoggedIn()): ?><a href="index.php?url=category/create" class="btn btn-primary mt-3"><i class="fas fa-plus mr-1"></i>Thêm ngay</a><?php endif; ?></div>
+<?php else: ?>
+<div class="card animate-in"><div class="card-body p-0"><div class="table-responsive"><table class="table mb-0"><thead><tr><th style="width:60px">#</th><th>Tên danh mục</th><th class="text-center" style="width:160px">Số sản phẩm</th><th>Mô tả</th><th style="width:260px" class="text-center">Hành động</th></tr></thead><tbody>
+<?php foreach ($categories as $cat): ?><tr><td><strong style="color:var(--text-muted);"><?= (int)$cat['id'] ?></strong></td><td><div class="d-flex align-items-center"><div style="width:38px;height:38px;background:var(--primary-50);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0;"><i class="fas fa-folder" style="color:var(--primary);font-size:.85rem;"></i></div><a href="index.php?url=product&category_id=<?= (int)$cat['id'] ?>" style="color:var(--ink);font-weight:900;"><?= e($cat['name']) ?></a></div></td><td class="text-center"><span class="category-badge" style="margin:0;"><?= (int)($cat['product_count'] ?? 0) ?> SP</span></td><td style="color:var(--text-secondary);"><?= !empty($cat['description']) ? e($cat['description']) : '<em style="color:var(--text-muted);">—</em>' ?></td><td class="text-center"><div class="d-flex justify-content-center flex-wrap" style="gap:6px;"><a href="index.php?url=product&category_id=<?= (int)$cat['id'] ?>" class="btn btn-secondary btn-sm"><i class="fas fa-eye mr-1"></i>Xem</a><?php if (isAdminLoggedIn()): ?><a href="index.php?url=category/edit/<?= (int)$cat['id'] ?>" class="btn btn-warning btn-sm"><i class="fas fa-pen mr-1"></i>Sửa</a><form method="POST" action="index.php?url=category/delete/<?= (int)$cat['id'] ?>" class="m-0"><?= csrf_input() ?><button type="submit" class="btn btn-danger btn-sm" onclick="event.preventDefault(); showConfirm('Xác nhận xóa', 'Hành động này không thể hoàn tác.', () => this.form.submit());"><i class="fas fa-trash-alt mr-1"></i>Xóa</button></form><?php endif; ?></div></td></tr><?php endforeach; ?>
+</tbody></table></div></div></div>
+<?php endif; ?>
+<?php include BASE_PATH . '/app/views/shares/footer.php'; ?>
